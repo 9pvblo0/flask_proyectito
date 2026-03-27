@@ -448,3 +448,29 @@ if __name__ == '__main__':
 # Inicia el servidor de desarrollo
 # debug=True permite ver errores detallados
     app.run(debug=True)
+
+from db import get_connection
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()
+
+def crear_admin_si_no_existe():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM usuarios_sistema WHERE correo = %s", ("admin@test.com",))
+    usuario = cursor.fetchone()
+
+    if not usuario:
+        clave_hash = bcrypt.generate_password_hash("123456").decode("utf-8")
+
+        cursor.execute("""
+            INSERT INTO usuarios_sistema (correo, nombres, apellidos, clave, rol)
+            VALUES (%s, %s, %s, %s, %s)
+        """, ("admin@test.com", "Admin", "Principal", clave_hash, "administrador"))
+
+        conn.commit()
+
+    conn.close()
+
+crear_admin_si_no_existe()

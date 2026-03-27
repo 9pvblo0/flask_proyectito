@@ -109,29 +109,24 @@ def admin_required(f):
  
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
+    # LOGIN TEMPORAL SOLO PARA PRIMER ACCESO
     if request.method == "POST":
+
         correo = request.form["correo"]
         clave = request.form["clave"]
 
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
+        if correo == "admin@test.com" and clave == "123456":
 
-        cursor.execute(
-            "SELECT * FROM usuarios_sistema WHERE correo = %s",
-            (correo,)
-        )
-        usuario = cursor.fetchone()
-        conn.close()
+            session["usuario_id"] = 1
+            session["rol"] = "administrador"
+            session["nombre"] = "Admin"
 
-        if usuario and bcrypt.check_password_hash(usuario["clave2"], clave):
-            session["usuario_id"] = usuario["id"]
-            session["rol"] = usuario["rol"]
-            session["nombre"] = usuario["nombres"]
             return redirect(url_for("usuarios"))
 
         return "Credenciales incorrectas"
 
-    return render_template("login.html") 
+    return render_template("login.html")
 
 @app.route("/api/login", methods=["POST"])
 def api_login():

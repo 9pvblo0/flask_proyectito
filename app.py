@@ -12,6 +12,54 @@ from flask import jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
+from db import get_connection
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt(app)
+
+def inicializar_bd():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios_sistema (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        correo VARCHAR(255),
+        nombres VARCHAR(255),
+        apellidos VARCHAR(255),
+        clave TEXT,
+        rol VARCHAR(50)
+    )
+    """)
+
+    cursor.execute(
+        "SELECT * FROM usuarios_sistema WHERE correo = %s",
+        ("admin@test.com",)
+    )
+
+    usuario = cursor.fetchone()
+
+    if not usuario:
+        hash = bcrypt.generate_password_hash("123456").decode("utf-8")
+
+        cursor.execute("""
+        INSERT INTO usuarios_sistema
+        (correo,nombres,apellidos,clave,rol)
+        VALUES (%s,%s,%s,%s,%s)
+        """,(
+        "admin@test.com",
+        "Admin",
+        "Principal",
+        hash,
+        "administrador"
+        ))
+
+        conn.commit()
+
+    conn.close()
+
+inicializar_bd()
+
 CORS(app) 
 app.config["JWT_SECRET_KEY"] = "clave_super_segura_api"
 app.config["JWT_IDENTITY_CLAIM"] = "sub"

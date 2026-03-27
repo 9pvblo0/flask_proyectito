@@ -75,7 +75,7 @@ def login():
         usuario = cursor.fetchone()
         conn.close()
 
-        if usuario and bcrypt.check_password_hash(usuario["clave"], clave):
+        if usuario and bcrypt.check_password_hash(usuario["clave2"], clave):
             session["usuario_id"] = usuario["id"]
             session["rol"] = usuario["rol"]
             session["nombre"] = usuario["nombres"]

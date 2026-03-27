@@ -18,9 +18,11 @@ from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt(app)
 
 def inicializar_bd():
+
     conn = get_connection()
     cursor = conn.cursor()
 
+    # tabla login sistema
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS usuarios_sistema (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -32,14 +34,43 @@ def inicializar_bd():
     )
     """)
 
+    # tabla usuarios
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nombre VARCHAR(255),
+        email VARCHAR(255)
+    )
+    """)
+
+    # tabla cursos
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS cursos (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nombre VARCHAR(255),
+        descripcion TEXT,
+        estado INT
+    )
+    """)
+
+    # tabla inscripciones
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS inscripciones (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        usuario_id INT,
+        curso_id INT,
+        fecha_inscripcion DATETIME
+    )
+    """)
+
+    # crear admin si no existe
     cursor.execute(
-        "SELECT * FROM usuarios_sistema WHERE correo = %s",
+        "SELECT * FROM usuarios_sistema WHERE correo=%s",
         ("admin@test.com",)
     )
 
-    usuario = cursor.fetchone()
+    if not cursor.fetchone():
 
-    if not usuario:
         hash = bcrypt.generate_password_hash("123456").decode("utf-8")
 
         cursor.execute("""
@@ -54,46 +85,10 @@ def inicializar_bd():
         "administrador"
         ))
 
-        conn.commit()
-
-    conn.close()
-
-inicializar_bd()
-def crear_tablas_restantes():
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS usuarios (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        nombre VARCHAR(255),
-        email VARCHAR(255)
-    )
-    """)
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS cursos (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        nombre VARCHAR(255),
-        descripcion TEXT,
-        estado INT DEFAULT 1
-    )
-    """)
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS inscripciones (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        usuario_id INT,
-        curso_id INT,
-        fecha_inscripcion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    """)
-
     conn.commit()
     conn.close()
 
-crear_tablas_restantes()
+inicializar_bd()
 
 CORS(app) 
 app.config["JWT_SECRET_KEY"] = "clave_super_segura_api"

@@ -59,6 +59,41 @@ def inicializar_bd():
     conn.close()
 
 inicializar_bd()
+def crear_tablas_restantes():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nombre VARCHAR(255),
+        email VARCHAR(255)
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS cursos (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nombre VARCHAR(255),
+        descripcion TEXT,
+        estado INT DEFAULT 1
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS inscripciones (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        usuario_id INT,
+        curso_id INT,
+        fecha_inscripcion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+crear_tablas_restantes()
 
 CORS(app) 
 app.config["JWT_SECRET_KEY"] = "clave_super_segura_api"
